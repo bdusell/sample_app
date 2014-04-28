@@ -37,4 +37,5 @@ SampleApp::Application.configure do
 
   config.eager_load = false
 
+  ActiveModel::SecurePassword.min_cost = true
 end
