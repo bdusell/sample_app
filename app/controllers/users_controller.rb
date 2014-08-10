@@ -3,6 +3,7 @@ class UsersController < ApplicationController
   before_action :signed_in_user, only: [:index, :edit, :update, :destroy]
   before_action :correct_user, only: [:edit, :update]
   before_action :admin_user, only: :destroy
+  before_action :new_user, only: [:new, :create]
 
   def index
     @users = User.paginate(page: params[:page])
@@ -32,7 +33,7 @@ class UsersController < ApplicationController
 
   def update
     if @user.update_attributes(user_params)
-      flash[:success] = 'Profile updated'
+      flash[:success] = "Profile updated."
       redirect_to @user
     else
       render 'edit'
@@ -68,5 +69,9 @@ class UsersController < ApplicationController
 
     def admin_user
       redirect_to(root_url) unless current_user.admin?
+    end
+
+    def new_user
+      redirect_to(root_url) if signed_in?
     end
 end
