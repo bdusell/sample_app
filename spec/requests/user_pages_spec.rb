@@ -193,4 +193,19 @@ describe "UserPages" do
       end
     end
   end
+
+  describe 'another user\'s profile page' do
+    let(:user) { FactoryGirl.create(:user) }
+    let(:other_user) { FactoryGirl.create(:user) }
+    let!(:m1) { FactoryGirl.create(:micropost, user: other_user, content: 'Foo') }
+
+    before do
+      sign_in user
+      visit user_path(other_user)
+    end
+
+    it 'should not show delete links by another user\'s posts' do
+      expect(page).not_to have_selector('a', text: 'delete')
+    end
+  end
 end
