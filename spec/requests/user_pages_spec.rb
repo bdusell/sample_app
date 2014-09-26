@@ -9,15 +9,38 @@ describe "UserPages" do
     let!(:m1) { FactoryGirl.create(:micropost, user: user, content: 'Foo') }
     let!(:m2) { FactoryGirl.create(:micropost, user: user, content: 'Bar') }
 
-    before { visit user_path(user) }
+    describe 'content' do
+      before { visit user_path(user) }
 
-    it { should have_content(user.name) }
-    it { should have_title(user.name) }
+      it { should have_content(user.name) }
+      it { should have_title(user.name) }
 
-    describe 'microposts' do
-      it { should have_content(m1.content) }
-      it { should have_content(m2.content) }
-      it { should have_content(user.microposts.count) }
+      describe 'microposts' do
+        it { should have_content(m1.content) }
+        it { should have_content(m2.content) }
+        it { should have_content(user.microposts.count) }
+      end
+    end
+
+    describe 'micropost pagination' do
+      before do
+        35.times do |i|
+          FactoryGirl.create(:micropost, user: user,
+                                         content: "Baz #{i}.")
+        end
+        visit user_path(user)
+      end
+
+      it { should have_selector('div.pagination') }
+
+      it 'should limit the number of posts per page' do
+        user.feed.paginate(page: 1).each do |m|
+          expect(page).to have_selector('li', text: m.content)
+        end
+        user.feed.paginate(page: 2).each do |m|
+          expect(page).not_to have_selector('li', text: m.content)
+        end
+      end
     end
   end
 
@@ -168,6 +191,21 @@ describe "UserPages" do
         end
         it { should_not have_link('delete', href: user_path(admin)) }
       end
+    end
+  end
+
+  describe 'another user\'s profile page' do
+    let(:user) { FactoryGirl.create(:user) }
+    let(:other_user) { FactoryGirl.create(:user) }
+    let!(:m1) { FactoryGirl.create(:micropost, user: other_user, content: 'Foo') }
+
+    before do
+      sign_in user
+      visit user_path(other_user)
+    end
+
+    it 'should not show delete links by another user\'s posts' do
+      expect(page).not_to have_selector('a', text: 'delete')
     end
   end
 end
